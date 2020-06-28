@@ -10,8 +10,10 @@ object DoobieExercise extends App {
   val userRepositoryImplByDoobie = new UserRepositoryImplByDoobie
   val res                        = userRepositoryImplByDoobie.findById(Id(1000)).unsafeRunSync()
   val res2                       = userRepositoryImplByDoobie.findById(Id(1)).unsafeRunSync()
+  val res3                       = userRepositoryImplByDoobie.save(User(Name("fook"), Id(1233))).unsafeRunSync()
   println(res)
   println(res2)
+  println(res3)
 }
 
 object Entity {
@@ -24,7 +26,7 @@ import Entity._
 
 trait UserRepository[F[_]] {
   def findById(id: Id): F[Option[User]]
-  def save(user: User): F[Unit]
+  def save(user: User): F[User]
 }
 
 class UserRepositoryImplByDoobie extends UserRepository[IO] {
@@ -44,5 +46,18 @@ class UserRepositoryImplByDoobie extends UserRepository[IO] {
       .option
       .transact(xa)
 
-  def save(user: User): IO[Unit] = ???
+  def save(user: User): IO[User] =
+    {
+    for {
+      _    <- sql"insert into users (name, id) values (${user.name.value}, ${user.id.value})".update.run
+      user <- sql"select name, id from users where id = ${user.id.value}".query[User].unique
+    } yield user
+  }.transact(xa)
+  //  sql"insert into users (name, id) values (${user.name.value}, ${user.id.value})".query[Unit]
+//  def insert2(name: String, age: Option[Short]): ConnectionIO[Person] =
+//    for {
+//      _  <- sql"insert into person (name, age) values ($name, $age)".update.run
+//      id <- sql"select lastval()".query[Long].unique
+//      p  <- sql"select id, name, age from person where id = $id".query[Person].unique
+//    } yield p
 }
