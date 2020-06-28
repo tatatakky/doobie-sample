@@ -53,11 +53,5 @@ class UserRepositoryImplByDoobie extends UserRepository[IO] {
       user <- sql"select name, id from users where id = ${user.id.value}".query[User].unique
     } yield user
   }.transact(xa)
-  //  sql"insert into users (name, id) values (${user.name.value}, ${user.id.value})".query[Unit]
-//  def insert2(name: String, age: Option[Short]): ConnectionIO[Person] =
-//    for {
-//      _  <- sql"insert into person (name, age) values ($name, $age)".update.run
-//      id <- sql"select lastval()".query[Long].unique
-//      p  <- sql"select id, name, age from person where id = $id".query[Person].unique
-//    } yield p
+
 }
